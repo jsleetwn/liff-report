@@ -64,21 +64,41 @@
   });
 
   async function handleSubmit() {
-    // 1. 抓取所有欄位值
-    const name = document.getElementById("name").value;
-    const item = document.getElementById("item").value;
-    const qty = document.getElementById("qty").value;
-    const bad_qty = document.getElementById("bad_qty").value;
-    const note = document.getElementById("note").value;
-    
-    const btn = document.getElementById("submit-btn");
-    const msg = document.getElementById("msg");
+  const name = document.getElementById("name").value;
+  const item = document.getElementById("item").value;
+  const qty = document.getElementById("qty").value;
+  const bad_qty = document.getElementById("bad_qty").value;
+  const note = document.getElementById("note").value;
+  
+  const msg = document.getElementById("msg");
 
-    // 2. 必填檢查
-    if (!item || !qty) {
-      alert("「項目」與「生產數量」為必填！");
-      return;
-    }
+  // 1. 換成你的表單正式提交網址 (結尾必須是 formResponse)
+  const formActionUrl = "https://google.com";
+
+  // 2. 組合資料 (請填入你剛才拿到的 entry.ID)
+  const submitUrl = `${formActionUrl}?` +
+    `entry.102247220=${encodeURIComponent(name)}&` +
+    `entry.578700101=${encodeURIComponent(item)}&` +
+    `entry.618712037=${encodeURIComponent(qty)}&` +
+    `entry.355774018=${encodeURIComponent(bad_qty)}&` +
+    `entry.916278900=${encodeURIComponent(note)}`;
+
+  try {
+    msg.innerText = "🚀 正在提交到表單...";
+    
+    await fetch(submitUrl, {
+      method: "POST",
+      mode: "no-cors"
+    });
+
+    msg.innerText = "✅ 回報成功！請重新整理表單後台";
+    alert("資料已成功送出");
+    liff.closeWindow();
+  } catch (err) {
+    alert("傳送失敗：" + err);
+  }
+}
+
 
     // 3. 準備傳送
     btn.disabled = true;

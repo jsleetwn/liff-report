@@ -10,7 +10,9 @@
     .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
     label { display: block; margin-top: 10px; font-weight: bold; }
     input, textarea { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    button { width: 100%; padding: 12px; background-color: #00b900; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    button { width: 100%; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+    .btn-submit { background-color: #00b900; color: white; }
+    .btn-invite { background-color: #007bff; color: white; }
     button:disabled { background-color: #ccc; }
     #msg { color: #666; text-align: center; margin-bottom: 10px; }
   </style>
@@ -21,6 +23,7 @@
   <h2>📋 產線回報表單</h2>
   <p id="msg">正在初始化...</p>
 
+  <!-- 所有的 UI 內容都應該放在這裡面 -->
   <div id="form-ui" style="display:none;">
     <label>姓名：</label>
     <input type="text" id="name" readonly style="background-color: #eee;">
@@ -35,9 +38,10 @@
     <input type="number" id="bad_qty" placeholder="0">
 
     <label>備註：</label>
-    <textarea id="note" rows="3"></textarea>
+    <textarea id="note" rows="2"></textarea>
 
-    <button id="submit-btn" onclick="handleSubmit()">確認送出回報</button>
+    <button class="btn-submit" id="submit-btn" onclick="handleSubmit()">確認送出回報</button>
+    <button class="btn-invite" onclick="sendInvite()">➕ 邀請好友填寫</button>
   </div>
 </div>
 
@@ -59,17 +63,32 @@
       document.getElementById("form-ui").style.display = "block";
     } catch (err) {
       document.getElementById("msg").innerText = "載入失敗：" + err;
+      alert("LIFF 初始化失敗，請檢查 ID 是否正確");
     }
   });
- function share() {
-  liff.shareTargetPicker([
-    {
-      type: "text",
-      text: "📋 產線回報系統\n點這裡填寫👇\nhttps://your-liff-url.com"
+
+  // 2. 邀請好友功能
+  async function sendInvite() {
+    if (liff.isApiAvailable('shareTargetPicker')) {
+      try {
+        const result = await liff.shareTargetPicker([
+          {
+            "type": "text",
+            "text": "📋 產線回報系統邀請\n點擊連結開始回報：\nhttps://line.me" + liffId
+          }
+        ]);
+        if (result) alert("已成功分享！");
+      } catch (error) {
+        console.error(error);
+        alert("分享取消或發生錯誤");
+      }
+    } else {
+      // 這是你截圖中缺少的權限，如果沒開，會跳這行
+      alert("此帳號尚未開啟 shareTargetPicker 權限，請至 LINE Developers 後台設定。");
     }
-  ]);
-}
-  // 2. 送出表單
+  }
+
+  // 3. 送出表單到 Google
   async function handleSubmit() {
     const btn = document.getElementById("submit-btn");
     const msg = document.getElementById("msg");
@@ -88,7 +107,6 @@
     const formID = "1FAIpQLSdooSUe_bJo79xWO8vEQaxzCUvFfjAUXJaUf5G0N25jcG8fSg";
     const formUrl = `https://docs.google.com/forms/d/e/${formID}/formResponse`;
 
-    // 這裡改用 URLSearchParams 並轉成字串，配合 no-cors
     const params = new URLSearchParams();
     params.append("entry.102247220", name);    
     params.append("entry.578700101", item);    
@@ -100,7 +118,6 @@
     msg.innerText = "🚀 正在提交到 Google 表單...";
 
     try {
-      // 由於 no-cors 不會回傳成功狀態，通常只要沒有進入 catch 就算成功
       await fetch(formUrl, {
         method: "POST",
         mode: "no-cors",
@@ -110,41 +127,12 @@
 
       msg.innerText = "✅ 回報成功！";
       alert("資料已成功送出！");
-      
-      // 延遲一下再關閉視窗，確保使用者看到提示
-      setTimeout(() => {
-        liff.closeWindow(); 
-      }, 1000);
-
+      setTimeout(() => { liff.closeWindow(); }, 1000);
     } catch (err) {
       msg.innerText = "❌ 傳送出錯：" + err;
       btn.disabled = false;
     }
   }
 </script>
-<!-- 在 HTML 加入按鈕 -->
-<button onclick="sendInvite()">邀請好友</button>
-
-<script>
-async function sendInvite() {
-  // 檢查權限是否開啟
-  if (liff.isApiAvailable('shareTargetPicker')) {
-    
-    const result = await liff.shareTargetPicker([
-      {
-        "type": "text",
-        "text": "這是來自產線系統的邀請連結：https://line.me" + liffId
-      }
-    ]);
-    
-    if (result) {
-      console.log("訊息已送出");
-    }
-  } else {
-    alert("請先在 LINE Developers 後台開啟 shareTargetPicker 權限");
-  }
-}
-</script>
-  
 </body>
 </html>

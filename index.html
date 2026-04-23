@@ -21,14 +21,24 @@
   <p id="msg">正在確認 LINE 登入狀態...</p>
 
   <div id="form-ui" style="display:none;">
-    <label>LINE 姓名：</label>
-    <input type="text" id="user-name" readonly style="background-color: #f0f0f0;">
-    
-    <label>回報內容：</label>
-    <input type="text" id="user-input" placeholder="請輸入您想填寫的內容">
-    
-    <button id="submit-btn" onclick="handleSubmit()">確認送出</button>
-  </div>
+  <label>姓名：</label>
+  <input type="text" id="name" readonly> <!-- LINE 自動帶入 -->
+
+  <label>項目：</label>
+  <input type="text" id="item" placeholder="請輸入項目">
+
+  <label>生產數量：</label>
+  <input type="number" id="qty" placeholder="0">
+
+  <label>不良品數：</label>
+  <input type="number" id="bad_qty" placeholder="0">
+
+  <label>備註：</label>
+  <textarea id="note"></textarea>
+
+  <button onclick="sendData()">送出回報</button>
+</div>
+
 </div>
 
 <script>

@@ -61,7 +61,14 @@
       document.getElementById("msg").innerText = "載入失敗：" + err;
     }
   });
-
+ function share() {
+  liff.shareTargetPicker([
+    {
+      type: "text",
+      text: "📋 產線回報系統\n點這裡填寫👇\nhttps://your-liff-url.com"
+    }
+  ]);
+}
   // 2. 送出表單
   async function handleSubmit() {
     const btn = document.getElementById("submit-btn");
@@ -114,6 +121,29 @@
       btn.disabled = false;
     }
   }
+</script>
+<!-- 在 HTML 加入按鈕 -->
+<button onclick="sendInvite()">邀請好友</button>
+
+<script>
+async function sendInvite() {
+  // 檢查權限是否開啟
+  if (liff.isApiAvailable('shareTargetPicker')) {
+    
+    const result = await liff.shareTargetPicker([
+      {
+        "type": "text",
+        "text": "這是來自產線系統的邀請連結：https://line.me" + liffId
+      }
+    ]);
+    
+    if (result) {
+      console.log("訊息已送出");
+    }
+  } else {
+    alert("請先在 LINE Developers 後台開啟 shareTargetPicker 權限");
+  }
+}
 </script>
   
 </body>

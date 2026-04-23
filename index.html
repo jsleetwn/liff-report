@@ -74,7 +74,8 @@
         const result = await liff.shareTargetPicker([
           {
             "type": "text",
-            "text": "📋 產線回報系統邀請\n點擊連結開始回報：\nhttps://lin.ee/s47da1o5
+            //"text": "📋 產線回報系統邀請\n點擊連結開始回報：\nhttps://lin.ee/s47da1o5
+            "text": "📋 產線回報系統邀請\n點擊連結開始回報：\nhttps://line.me/" + liffId
           }
         ]);
         if (result) alert("已成功分享！");

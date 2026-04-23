@@ -1,58 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIFF 自製表單</title>
+  <script src="https://line-scdn.net"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .container { max-width: 400px; margin: auto; }
+    input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button { width: 100%; padding: 10px; background-color: #00b900; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:disabled { background-color: #ccc; }
+    #msg { color: #555; font-size: 14px; }
+  </style>
 </head>
 <body>
-  <h1 id="msg">正在初始化 LINE 登入...</h1>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        // 1. 初始化 LIFF
-        await liff.init({
-          liffId: "2009861344-Es7WRe6Q",
-          withLoginOnExternalBrowser: true
-        });
+<div class="container">
+  <h2>📋 填寫資料</h2>
+  <p id="msg">正在確認 LINE 登入狀態...</p>
 
-        // 2. 檢查是否已登入
-        if (!liff.isLoggedIn()) {
-          liff.login(); // 強制登入
-          return;
-        }
+  <div id="form-ui" style="display:none;">
+    <label>LINE 姓名：</label>
+    <input type="text" id="user-name" readonly style="background-color: #f0f0f0;">
+    
+    <label>回報內容：</label>
+    <input type="text" id="user-input" placeholder="請輸入您想填寫的內容">
+    
+    <button id="submit-btn" onclick="handleSubmit()">確認送出</button>
+  </div>
+</div>
 
-        // 3. 取得資料並傳送
-        const profile = await liff.getProfile();
-        const userName = profile.displayName;
-        document.getElementById("msg").innerText = "哈囉 " + userName + "，傳送中...";
-        
-        await sendToGoogleDoc(userName);
+<script>
+  let liffId = "2009861344-Es7WRe6Q"; // 您的 LIFF ID
+  let scriptUrl = "https://script.google.com/macros/s/AKfycbz3W64Am5dL0oJvkeEZ24nasWS7wXeWBmjuAceWZinUOgwnPkmAxj2-d0DFY_8fcO1U/exec"; // 👈 記得換成你的 GAS URL
 
-      } catch (err) {
-        document.getElementById("msg").innerText = "系統錯誤";
-        console.error(err);
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      await liff.init({ liffId: liffId, withLoginOnExternalBrowser: true });
+
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
       }
-    });
 
-    async function sendToGoogleDoc(name) {
-      // 記得更換成你的 GAS URL
-      const scriptUrl = "https://script.google.com/macros/s/AKfycbz3W64Am5dL0oJvkeEZ24nasWS7wXeWBmjuAceWZinUOgwnPkmAxj2-d0DFY_8fcO1U/exec"; 
+      const profile = await liff.getProfile();
+      document.getElementById("user-name").value = profile.displayName;
       
-      try {
-        await fetch(scriptUrl, {
-          method: "POST",
-          mode: "no-cors", 
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: name })
-        });
-        document.getElementById("msg").innerText = "✅ 資料已成功寫入 Google 文件！";
-      } catch (err) {
-        document.getElementById("msg").innerText = "❌ 寫入失敗";
-        console.error(err);
-      }
+      // 顯示表單
+      document.getElementById("msg").innerText = "已連結 LINE 帳號";
+      document.getElementById("form-ui").style.display = "block";
+
+    } catch (err) {
+      document.getElementById("msg").innerText = "載入失敗：" + err;
     }
-  </script>
+  });
+
+  async function handleSubmit() {
+    const name = document.getElementById("user-name").value;
+    const content = document.getElementById("user-input").value;
+    const btn = document.getElementById("submit-btn");
+    const msg = document.getElementById("msg");
+
+    if (!content) {
+      alert("請輸入內容！");
+      return;
+    }
+
+    // 禁用按鈕防止重複點擊
+    btn.disabled = true;
+    msg.innerText = "🚀 正在傳送到 Google 文件...";
+
+    try {
+      await fetch(scriptUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          name: name, 
+          content: content,
+          timestamp: new Date().toLocaleString()
+        })
+      });
+
+      msg.innerText = "✅ 成功寫入文件！";
+      alert("傳送成功！");
+      liff.closeWindow(); // 成功後關閉視窗 (限於 LINE App 內)
+    } catch (err) {
+      msg.innerText = "❌ 傳送失敗，請稍後再試";
+      btn.disabled = false;
+    }
+  }
+</script>
+
 </body>
 </html>
-

@@ -69,33 +69,35 @@
   const qty = document.getElementById("qty").value;
   const bad_qty = document.getElementById("bad_qty").value;
   const note = document.getElementById("note").value;
-  
   const msg = document.getElementById("msg");
 
-  // 1. 換成你的表單正式提交網址 (結尾必須是 formResponse)
-  const formActionUrl = "https://google.com";
+  // 1. 填入你的表單 ID (在表單網址 /d/ 和 /edit 之間的那串)
+  const formID = "你的表單ID"; 
+  const formUrl = `https://google.com{formID}/formResponse`;
 
-  // 2. 組合資料 (請填入你剛才拿到的 entry.ID)
-  const submitUrl = `${formActionUrl}?` +
-    `entry.102247220=${encodeURIComponent(name)}&` +
-    `entry.578700101=${encodeURIComponent(item)}&` +
-    `entry.618712037=${encodeURIComponent(qty)}&` +
-    `entry.355774018=${encodeURIComponent(bad_qty)}&` +
-    `entry.916278900=${encodeURIComponent(note)}`;
+  // 2. 組合欄位 (請將下方的 entry.數字 換成你第一步取得的實際編號)
+  const params = new URLSearchParams();
+  params.append("entry.102247220", name);    // 姓名
+  params.append("entry.578700101", item);    // 項目
+  params.append("entry.618712037", qty);     // 生產數量
+  params.append("entry.355774018", bad_qty); // 不良品數
+  params.append("entry.314678293", note);    // 備註
+
+  msg.innerText = "🚀 正在提交到表單...";
 
   try {
-    msg.innerText = "🚀 正在提交到表單...";
-    
-    await fetch(submitUrl, {
+    await fetch(formUrl, {
       method: "POST",
-      mode: "no-cors"
+      mode: "no-cors", // 必須使用 no-cors
+      body: params
     });
 
-    msg.innerText = "✅ 回報成功！請重新整理表單後台";
-    alert("資料已成功送出");
+    msg.innerText = "✅ 回報成功！";
+    alert("資料已成功送出，請查看表單回應");
     liff.closeWindow();
   } catch (err) {
-    alert("傳送失敗：" + err);
+    msg.innerText = "❌ 傳送出錯";
+    console.error(err);
   }
 }
 

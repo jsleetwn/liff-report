@@ -44,6 +44,7 @@
 <script>
   const liffId = "2009861344-Es7WRe6Q";
 
+  // 1. 初始化 LIFF
   document.addEventListener("DOMContentLoaded", async () => {
     try {
       await liff.init({ liffId: liffId, withLoginOnExternalBrowser: true });
@@ -61,31 +62,11 @@
     }
   });
 
-<script>
-  const liffId = "2009861344-Es7WRe6Q";
-
-  document.addEventListener("DOMContentLoaded", async () => {
-    try {
-      await liff.init({ liffId: liffId, withLoginOnExternalBrowser: true });
-      if (!liff.isLoggedIn()) {
-        liff.login();
-        return;
-      }
-      const profile = await liff.getProfile();
-      document.getElementById("name").value = profile.displayName;
-      
-      document.getElementById("msg").innerText = "LINE 已連線";
-      document.getElementById("form-ui").style.display = "block";
-    } catch (err) {
-      document.getElementById("msg").innerText = "載入失敗：" + err;
-    }
-  });
-
+  // 2. 送出表單
   async function handleSubmit() {
     const btn = document.getElementById("submit-btn");
     const msg = document.getElementById("msg");
     
-    // 1. 取得資料
     const name = document.getElementById("name").value;
     const item = document.getElementById("item").value;
     const qty = document.getElementById("qty").value;
@@ -97,10 +78,10 @@
       return;
     }
 
-    // 2. Google 表單設定 (修正網址格式與變數拼接)
-   const formID = "1FAIpQLSdooSUe_bJo79xWO8vEQaxzCUvFfjAUXJaUf5G0N25jcG8fSg";
-   const formUrl = `https://docs.google.com/forms/d/e/${formID}/formResponse`;
+    const formID = "1FAIpQLSdooSUe_bJo79xWO8vEQaxzCUvFfjAUXJaUf5G0N25jcG8fSg";
+    const formUrl = `https://docs.google.com/forms/d/e/${formID}/formResponse`;
 
+    // 這裡改用 URLSearchParams 並轉成字串，配合 no-cors
     const params = new URLSearchParams();
     params.append("entry.102247220", name);    
     params.append("entry.578700101", item);    
@@ -108,24 +89,29 @@
     params.append("entry.355774018", bad_qty); 
     params.append("entry.314678293", note);    
 
-    // 3. 執行提交
     btn.disabled = true;
     msg.innerText = "🚀 正在提交到 Google 表單...";
 
     try {
+      // 由於 no-cors 不會回傳成功狀態，通常只要沒有進入 catch 就算成功
       await fetch(formUrl, {
         method: "POST",
-        mode: "no-cors", // Google 表單必須設為 no-cors
-        body: params
+        mode: "no-cors",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params.toString()
       });
 
       msg.innerText = "✅ 回報成功！";
       alert("資料已成功送出！");
-      liff.closeWindow(); 
+      
+      // 延遲一下再關閉視窗，確保使用者看到提示
+      setTimeout(() => {
+        liff.closeWindow(); 
+      }, 1000);
+
     } catch (err) {
       msg.innerText = "❌ 傳送出錯：" + err;
       btn.disabled = false;
-      console.error(err);
     }
   }
 </script>

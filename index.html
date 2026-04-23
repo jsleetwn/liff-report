@@ -1,1 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <h1 id="msg">Loading...</h1>
 
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        await liff.init({
+          liffId: "2009861344-Es7WRe6Q",
+          withLoginOnExternalBrowser: true
+        });
+        document.getElementById("msg").innerText = "LIFF OK";
+      } catch (err) {
+        document.getElementById("msg").innerText = "ERROR";
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -42,9 +42,7 @@
 </div>
 
 <script>
-  // 你的設定
   const liffId = "2009861344-Es7WRe6Q";
-  const scriptUrl = "https://script.google.com/macros/s/AKfycbz3W64Am5dL0oJvkeEZ24nasWS7wXeWBmjuAceWZinUOgwnPkmAxj2-d0DFY_8fcO1U/exec";
 
   document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -64,77 +62,54 @@
   });
 
   async function handleSubmit() {
-  const name = document.getElementById("name").value;
-  const item = document.getElementById("item").value;
-  const qty = document.getElementById("qty").value;
-  const bad_qty = document.getElementById("bad_qty").value;
-  const note = document.getElementById("note").value;
-  const msg = document.getElementById("msg");
+    const btn = document.getElementById("submit-btn");
+    const msg = document.getElementById("msg");
+    
+    // 取得資料
+    const name = document.getElementById("name").value;
+    const item = document.getElementById("item").value;
+    const qty = document.getElementById("qty").value;
+    const bad_qty = document.getElementById("bad_qty").value;
+    const note = document.getElementById("note").value;
 
-  // 1. 填入你的表單 ID (在表單網址 /d/ 和 /edit 之間的那串)
-  const formID = "1ZIjTMBDivhcyspNEvovGZF2jZN7LrPJxvVv9aniwyvw"; 
-  const formUrl = `https://google.com{formID}/formResponse`;
+    if (!item || !qty) {
+      alert("請填寫項目與數量！");
+      return;
+    }
 
-  // 2. 組合欄位 (請將下方的 entry.數字 換成你第一步取得的實際編號)
-  const params = new URLSearchParams();
-  params.append("entry.102247220", name);    // 姓名
-  params.append("entry.578700101", item);    // 項目
-  params.append("entry.618712037", qty);     // 生產數量
-  params.append("entry.355774018", bad_qty); // 不良品數
-  params.append("entry.314678293", note);    // 備註
+    // Google 表單設定
+    const formID = "1ZIjTMBDivhcyspNEvovGZF2jZN7LrPJxvVv9aniwyvw"; 
+    const formUrl = `https://google.com{formID}/formResponse`;
 
-  msg.innerText = "🚀 正在提交到表單...";
+    const params = new URLSearchParams();
+    params.append("entry.102247220", name);    
+    params.append("entry.578700101", item);    
+    params.append("entry.618712037", qty);     
+    params.append("entry.355774018", bad_qty); 
+    params.append("entry.314678293", note);    
 
-  try {
-    await fetch(formUrl, {
-      method: "POST",
-      mode: "no-cors", // 必須使用 no-cors
-      body: params
-    });
-
-    msg.innerText = "✅ 回報成功！";
-    alert("資料已成功送出，請查看表單回應");
-    liff.closeWindow();
-  } catch (err) {
-    msg.innerText = "❌ 傳送出錯";
-    console.error(err);
-  }
-}
-
-
-    // 3. 準備傳送
     btn.disabled = true;
-    msg.innerText = "🚀 正在傳送資料...";
-
-    const payload = {
-      name: name,
-      item: item,
-      qty: qty,
-      bad_qty: bad_qty,
-      note: note,
-      timestamp: new Date().toLocaleString()
-    };
+    msg.innerText = "🚀 正在提交到 Google 表單...";
 
     try {
-      // 傳送到 Google Apps Script
-      await fetch(scriptUrl, {
+      await fetch(formUrl, {
         method: "POST",
-        mode: "no-cors", // 配合 GAS 的跨網域設定
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        mode: "no-cors",
+        body: params
       });
 
       msg.innerText = "✅ 回報成功！";
-      alert("產線資料已報工成功！");
-      liff.closeWindow();
+      alert("資料已成功送出！");
+      liff.closeWindow(); 
     } catch (err) {
-      msg.innerText = "❌ 傳送失敗，請檢查網路";
-      console.error(err);
+      msg.innerText = "❌ 傳送出錯";
       btn.disabled = false;
+      console.error(err);
     }
   }
 </script>
 
 </body>
 </html>
+
 

@@ -3,101 +3,111 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LIFF 自製表單</title>
+  <title>產線回報系統</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .container { max-width: 400px; margin: auto; }
-    input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    button { width: 100%; padding: 10px; background-color: #00b900; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
+    .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input, textarea { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; background-color: #00b900; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
     button:disabled { background-color: #ccc; }
-    #msg { color: #555; font-size: 14px; }
+    #msg { color: #666; text-align: center; margin-bottom: 10px; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>📋 填寫資料</h2>
-  <p id="msg">正在確認 LINE 登入狀態...</p>
+  <h2>📋 產線回報表單</h2>
+  <p id="msg">正在初始化...</p>
 
   <div id="form-ui" style="display:none;">
-  <label>姓名：</label>
-  <input type="text" id="name" readonly> <!-- LINE 自動帶入 -->
+    <label>姓名：</label>
+    <input type="text" id="name" readonly style="background-color: #eee;">
 
-  <label>項目：</label>
-  <input type="text" id="item" placeholder="請輸入項目">
+    <label>項目：</label>
+    <input type="text" id="item" placeholder="例如：零件 A">
 
-  <label>生產數量：</label>
-  <input type="number" id="qty" placeholder="0">
+    <label>生產數量：</label>
+    <input type="number" id="qty" placeholder="0">
 
-  <label>不良品數：</label>
-  <input type="number" id="bad_qty" placeholder="0">
+    <label>不良品數：</label>
+    <input type="number" id="bad_qty" placeholder="0">
 
-  <label>備註：</label>
-  <textarea id="note"></textarea>
+    <label>備註：</label>
+    <textarea id="note" rows="3"></textarea>
 
-  <button onclick="sendData()">送出回報</button>
-</div>
-
+    <button id="submit-btn" onclick="handleSubmit()">確認送出回報</button>
+  </div>
 </div>
 
 <script>
-  let liffId = "2009861344-Es7WRe6Q"; // 您的 LIFF ID
-  let scriptUrl = "https://script.google.com/macros/s/AKfycbz3W64Am5dL0oJvkeEZ24nasWS7wXeWBmjuAceWZinUOgwnPkmAxj2-d0DFY_8fcO1U/exec"; // 👈 記得換成你的 GAS URL
+  // 你的設定
+  const liffId = "2009861344-Es7WRe6Q";
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbz3W64Am5dL0oJvkeEZ24nasWS7wXeWBmjuAceWZinUOgwnPkmAxj2-d0DFY_8fcO1U/exec";
 
   document.addEventListener("DOMContentLoaded", async () => {
     try {
       await liff.init({ liffId: liffId, withLoginOnExternalBrowser: true });
-
       if (!liff.isLoggedIn()) {
         liff.login();
         return;
       }
-
       const profile = await liff.getProfile();
-      document.getElementById("user-name").value = profile.displayName;
+      document.getElementById("name").value = profile.displayName;
       
-      // 顯示表單
-      document.getElementById("msg").innerText = "已連結 LINE 帳號";
+      document.getElementById("msg").innerText = "LINE 已連線";
       document.getElementById("form-ui").style.display = "block";
-
     } catch (err) {
       document.getElementById("msg").innerText = "載入失敗：" + err;
     }
   });
 
   async function handleSubmit() {
-    const name = document.getElementById("user-name").value;
-    const content = document.getElementById("user-input").value;
+    // 1. 抓取所有欄位值
+    const name = document.getElementById("name").value;
+    const item = document.getElementById("item").value;
+    const qty = document.getElementById("qty").value;
+    const bad_qty = document.getElementById("bad_qty").value;
+    const note = document.getElementById("note").value;
+    
     const btn = document.getElementById("submit-btn");
     const msg = document.getElementById("msg");
 
-    if (!content) {
-      alert("請輸入內容！");
+    // 2. 必填檢查
+    if (!item || !qty) {
+      alert("「項目」與「生產數量」為必填！");
       return;
     }
 
-    // 禁用按鈕防止重複點擊
+    // 3. 準備傳送
     btn.disabled = true;
-    msg.innerText = "🚀 正在傳送到 Google 文件...";
+    msg.innerText = "🚀 正在傳送資料...";
+
+    const payload = {
+      name: name,
+      item: item,
+      qty: qty,
+      bad_qty: bad_qty,
+      note: note,
+      timestamp: new Date().toLocaleString()
+    };
 
     try {
+      // 傳送到 Google Apps Script
       await fetch(scriptUrl, {
         method: "POST",
-        mode: "no-cors",
+        mode: "no-cors", // 配合 GAS 的跨網域設定
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          name: name, 
-          content: content,
-          timestamp: new Date().toLocaleString()
-        })
+        body: JSON.stringify(payload)
       });
 
-      msg.innerText = "✅ 成功寫入文件！";
-      alert("傳送成功！");
-      liff.closeWindow(); // 成功後關閉視窗 (限於 LINE App 內)
+      msg.innerText = "✅ 回報成功！";
+      alert("產線資料已報工成功！");
+      liff.closeWindow();
     } catch (err) {
-      msg.innerText = "❌ 傳送失敗，請稍後再試";
+      msg.innerText = "❌ 傳送失敗，請檢查網路";
+      console.error(err);
       btn.disabled = false;
     }
   }
@@ -105,3 +115,4 @@
 
 </body>
 </html>
+

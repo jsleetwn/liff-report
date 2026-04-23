@@ -35,8 +35,8 @@
     }
 
     // 2. Google 表單設定 (修正網址格式與變數拼接)
-    const formID = "1FAIpQLSdooSUe_bJo79xWO8vEQaxzCUvFfjAUXJaUf5G0N25jcG8fSg"; 
-    const formUrl = `https://google.com{formID}/formResponse`; // 👈 修正此處
+   const formID = "1FAIpQLSdooSUe_bJo79xWO8vEQaxzCUvFfjAUXJaUf5G0N25jcG8fSg";
+   const formUrl = `https://docs.google.com/forms/d/e/${formID}/formResponse`;
 
     const params = new URLSearchParams();
     params.append("entry.102247220", name);    

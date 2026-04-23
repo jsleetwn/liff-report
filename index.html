@@ -1,3 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>產線回報系統</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
+    .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input, textarea { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; background-color: #00b900; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    button:disabled { background-color: #ccc; }
+    #msg { color: #666; text-align: center; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>📋 產線回報表單</h2>
+  <p id="msg">正在初始化...</p>
+
+  <div id="form-ui" style="display:none;">
+    <label>姓名：</label>
+    <input type="text" id="name" readonly style="background-color: #eee;">
+
+    <label>項目：</label>
+    <input type="text" id="item" placeholder="例如：零件 A">
+
+    <label>生產數量：</label>
+    <input type="number" id="qty" placeholder="0">
+
+    <label>不良品數：</label>
+    <input type="number" id="bad_qty" placeholder="0">
+
+    <label>備註：</label>
+    <textarea id="note" rows="3"></textarea>
+
+    <button id="submit-btn" onclick="handleSubmit()">確認送出回報</button>
+  </div>
+</div>
+
+<script>
+  const liffId = "2009861344-Es7WRe6Q";
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      await liff.init({ liffId: liffId, withLoginOnExternalBrowser: true });
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+      const profile = await liff.getProfile();
+      document.getElementById("name").value = profile.displayName;
+      
+      document.getElementById("msg").innerText = "LINE 已連線";
+      document.getElementById("form-ui").style.display = "block";
+    } catch (err) {
+      document.getElementById("msg").innerText = "載入失敗：" + err;
+    }
+  });
+
 <script>
   const liffId = "2009861344-Es7WRe6Q";
 
@@ -66,3 +129,6 @@
     }
   }
 </script>
+  
+</body>
+</html>

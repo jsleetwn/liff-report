@@ -62,20 +62,38 @@
   });
 
   async function handleSubmit() {
-    const btn = document.getElementById("submit-btn");
-    const msg = document.getElementById("msg");
-    
-    // 取得資料
-    const name = document.getElementById("name").value;
-    const item = document.getElementById("item").value;
-    const qty = document.getElementById("qty").value;
-    const bad_qty = document.getElementById("bad_qty").value;
-    const note = document.getElementById("note").value;
+    // ... 前段取得資料的程式碼 ...
 
-    if (!item || !qty) {
-      alert("請填寫項目與數量！");
-      return;
+    const FORM_ID = "1FAIpQLSdooSUe_bJo79xWO8vEQaxzCUvFfjAUXJaUf5G0N25jcG8fSg"; // 👈 請填入真實的 ID
+    const url = `https://google.com{FORM_ID}/formResponse`;
+
+    try {
+        // 停用按鈕防止重複點擊
+        btn.disabled = true;
+        msg.innerText = "提交中...";
+
+        const response = await fetch(url, {
+            method: "POST",
+            mode: "no-cors", // Google 表單通常需要此設定
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                "entry.102247220": name,  // 👈 請替換為你表單正確的 entry ID
+                "entry.578700101": item,
+                "entry.618712037=": qty,
+                "entry.355774018": bad_qty,
+                "entry.314678293": note
+            })
+        });
+
+        msg.innerText = "提交成功！";
+    } catch (error) {
+        console.error("發生錯誤:", error);
+        msg.innerText = "提交失敗，請檢查網路連線。";
+    } finally {
+        btn.disabled = false;
     }
+}
+
 
     // Google 表單設定
     const formID = "1FAIpQLSdooSUe_bJo79xWO8vEQaxzCUvFfjAUXJaUf5G0N25jcG8fSg"; 
